@@ -1,0 +1,92 @@
+DROP TABLE IF EXISTS matching_session CASCADE;
+DROP TABLE IF EXISTS matching CASCADE;
+DROP TABLE IF EXISTS test_attempt CASCADE;
+DROP TABLE IF EXISTS test_question CASCADE;
+DROP TABLE IF EXISTS test CASCADE;
+DROP TABLE IF EXISTS card_tag CASCADE;
+DROP TABLE IF EXISTS tag CASCADE;
+DROP TABLE IF EXISTS card CASCADE;
+DROP TABLE IF EXISTS module CASCADE;
+DROP TABLE IF EXISTS dictionary CASCADE;
+DROP TABLE IF EXISTS progress CASCADE;
+DROP TABLE IF EXISTS app_user CASCADE;
+DROP TABLE IF EXISTS language CASCADE;
+
+CREATE TABLE language (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE app_user (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE progress (
+    id SERIAL PRIMARY KEY,
+    user_id INT UNIQUE REFERENCES app_user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE dictionary (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    source_language_id INT REFERENCES language(id) ON DELETE RESTRICT,
+    target_language_id INT REFERENCES language(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE module (
+    id SERIAL PRIMARY KEY,
+    dictionary_id INT REFERENCES dictionary(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE card (
+    id SERIAL PRIMARY KEY,
+    module_id INT REFERENCES module(id) ON DELETE CASCADE,
+    term VARCHAR(255) NOT NULL,
+    translation VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE tag (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE card_tag (
+    card_id INT REFERENCES card(id) ON DELETE CASCADE,
+    tag_id INT REFERENCES tag(id) ON DELETE CASCADE,
+    PRIMARY KEY (card_id, tag_id)
+);
+
+CREATE TABLE test (
+    id SERIAL PRIMARY KEY,
+    module_id INT REFERENCES module(id) ON DELETE CASCADE
+);
+
+CREATE TABLE test_question (
+    id SERIAL PRIMARY KEY,
+    test_id INT REFERENCES test(id) ON DELETE CASCADE,
+    card_id INT REFERENCES card(id) ON DELETE CASCADE
+);
+
+CREATE TABLE test_attempt (
+    id SERIAL PRIMARY KEY,
+    test_id INT REFERENCES test(id) ON DELETE CASCADE,
+    user_id INT REFERENCES app_user(id) ON DELETE CASCADE,
+    errors_count INT DEFAULT 0
+);
+
+CREATE TABLE matching (
+    id SERIAL PRIMARY KEY,
+    module_id INT REFERENCES module(id) ON DELETE CASCADE
+);
+
+CREATE TABLE matching_session (
+    id SERIAL PRIMARY KEY,
+    matching_id INT REFERENCES matching(id) ON DELETE CASCADE,
+    user_id INT REFERENCES app_user(id) ON DELETE CASCADE,
+    errors_count INT DEFAULT 0
+);
+

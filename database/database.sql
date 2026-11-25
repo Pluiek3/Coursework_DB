@@ -18,8 +18,7 @@ CREATE TABLE language (
 CREATE TABLE app_user (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL
+    password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE progress (
@@ -83,3 +82,20 @@ CREATE INDEX idx_card_dict ON card(dictionary_id);
 CREATE INDEX idx_module_dict ON module(dictionary_id);
 CREATE INDEX idx_result_user ON result(user_id);
 CREATE INDEX idx_task_module ON task(module_id);
+
+
+INSERT INTO language (name) VALUES ('Русский'), ('Чешский'), ('Английский');
+
+INSERT INTO app_user (name, password) VALUES ('Pluiek', 'pluiek');
+
+INSERT INTO dictionary (name, author_id, source_language_id, target_language_id) 
+VALUES 
+('Чешский', 1, 1, 2),
+('Английский', 1, 1, 3);
+
+INSERT INTO module (dictionary_id, name) VALUES 
+(1, 'Фрукты'),
+(1, 'Глаголы'),
+(1, 'Приветствия'),
+(2, 'Еда'),
+(2, 'Путешествия');

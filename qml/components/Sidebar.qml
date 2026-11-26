@@ -9,8 +9,8 @@ Rectangle {
     border.width: 1
 
     signal viewRequested(string viewName)
-    property bool isModulesExpanded: true
     
+    property bool isDictionariesExpanded: true
     property color titleColor: "#3EB489"
 
     ColumnLayout {
@@ -40,7 +40,7 @@ Rectangle {
 
         Rectangle { Layout.fillWidth: true; height: 1; color: "#E2E8F0"; Layout.topMargin: 10; Layout.bottomMargin: 10 }
 
-        //Модули
+        //Словари
         Rectangle {
             Layout.fillWidth: true
             height: 36
@@ -53,10 +53,10 @@ Rectangle {
                 spacing: 5
                 
                 Text { 
-                    text: "▶"
+                    text: "..."
                     font.pixelSize: 12
                     color: "#718096"
-                    rotation: root.isModulesExpanded ? 90 : 0
+                    rotation: root.isDictionariesExpanded ? 90 : 0
                     Behavior on rotation { NumberAnimation { duration: 150 } }
                 }
                 
@@ -73,7 +73,7 @@ Rectangle {
                 hoverEnabled: true
                 onEntered: parent.color = "#E2E8F0"
                 onExited: parent.color = "transparent"
-                onClicked: root.isModulesExpanded = !root.isModulesExpanded
+                onClicked: root.isDictionariesExpanded = !root.isDictionariesExpanded
             }
         }
 
@@ -81,15 +81,70 @@ Rectangle {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 4
-            visible: root.isModulesExpanded
+            visible: root.isDictionariesExpanded
 
             Repeater {
-                model: backend.modules
-                delegate: ModuleItem {
-                    title: modelData
-                    onClicked: {
-                        backend.selectModule(modelData)
-                        root.viewRequested("module")
+                model: backend.dictionaries
+
+                delegate: ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+
+                    property bool isExpanded: false
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 40
+                        radius: 8
+                        color: "transparent"
+                        
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 5
+                            spacing: 5
+                            Text { 
+                                text: ""
+                                font.pixelSize: 10
+                                color: "#3EB489"
+                                rotation: parent.parent.parent.isExpanded ? 90 : 0
+                                Behavior on rotation { NumberAnimation { duration: 150 } }
+                            }
+                            Column {
+                                Text { text: modelData.name; color: "#2E3856"; font.bold: true }
+                                Text { text: modelData.language; color: "#718096"; font.pixelSize: 10 }
+                            }
+                        }
+                        
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onEntered: parent.color = "#E2E8F0"
+                            onExited: parent.color = "transparent"
+                            onClicked: {
+                                parent.parent.isExpanded = !parent.parent.isExpanded
+                                if (parent.parent.isExpanded) {
+                                    backend.selectDictionary(modelData.id)
+                                }
+                            }
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 2
+                        visible: parent.isExpanded
+                        Layout.leftMargin: 20
+
+                        Repeater {
+                            model: parent.visible ? backend.modules : null
+                            delegate: ModuleItem {
+                                title: modelData.name
+                                onClicked: {
+                                    backend.selectModule(modelData.name)
+                                    root.viewRequested("module")
+                                }
+                            }
+                        }
                     }
                 }
             }

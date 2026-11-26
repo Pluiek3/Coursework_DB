@@ -23,7 +23,7 @@ class Backend(QObject):
         
         self.load_dictionaries()
         
-        def get_connection(self):
+    def get_connection(self):
         return psycopg2.connect(**self.db_config)
 
     def load_dictionaries(self):
@@ -49,10 +49,6 @@ class Backend(QObject):
     @Property(list, notify=dataChanged)
     def dictionaries(self):
         return self._dictionaries
-        
-    @Property(list, notify=dataChanged)
-    def modules(self):
-        return self._modules
 
     @Property(list, notify=dataChanged)
     def modules(self):

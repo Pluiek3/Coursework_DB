@@ -99,3 +99,12 @@ INSERT INTO module (dictionary_id, name) VALUES
 (1, 'Приветствия'),
 (2, 'Еда'),
 (2, 'Путешествия');
+
+INSERT INTO card (dictionary_id, term, translation) VALUES
+(1, 'Jablko', 'Яблоко'),
+(1, 'Banán', 'Банан'),
+(1, 'Pomeranč', 'Апельсин'),
+(1, 'Hruška', 'Груша');
+
+INSERT INTO module_card (module_id, card_id) VALUES
+(1, 1), (1, 2), (1, 3), (1, 4);

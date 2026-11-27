@@ -7,8 +7,6 @@ class Backend(QObject):
     def __init__(self):
         super().__init__()
         
-        self._current_module = ""
-        
         self.db_config = {
             "dbname": "slovnicek",       
             "user": "pluiek",         
@@ -19,7 +17,12 @@ class Backend(QObject):
         
         self._dictionaries = []
         
-        self._modules = []
+        self._dictionary_modules = []
+        
+        self._module_cards = []
+        
+        self._current_dict_name = ""
+        self._current_module_name = ""
         
         self.load_dictionaries()
         
@@ -44,24 +47,38 @@ class Backend(QObject):
             cur.close()
             conn.close()
         except Exception as e:
-            print(f"Ошибка подключения к БД (load_dictionaries): {e}")
+            print(f"Ошибка БД (load_dictionaries): {e}")
             
     @Property(list, notify=dataChanged)
     def dictionaries(self):
         return self._dictionaries
+        
+    @Property(str, notify=dataChanged)
+    def currentDictionaryName(self): 
+        return self._current_dict_name
 
     @Property(list, notify=dataChanged)
-    def modules(self):
-        return self._modules
+    def dictionaryModules(self):
+        return self._dictionary_modules
+    
+    @Property(str, notify=dataChanged)
+    def currentModuleName(self): 
+        return self._current_module_name
+
+    @Property(list, notify=dataChanged)
+    def moduleCards(self): 
+        return self._module_cards
         
     @Slot(int)
     def selectDictionary(self, dict_id):
         try:
             conn = self.get_connection()
             cur = conn.cursor()
+            cur.execute("SELECT name FROM dictionary WHERE id = %s", (dict_id,))
+            self._current_dict_name = cur.fetchone()[0]
             cur.execute("SELECT id, name FROM module WHERE dictionary_id = %s", (dict_id,))
-            rows = cur.fetchall()
-            self._modules = [{"id": row[0], "name": row[1]} for row in rows]
+            self._dictionary_modules = [{"id": row[0], "name": row[1]} for row in cur.fetchall()]
+            self._module_cards = []
             cur.close()
             conn.close()
             self.dataChanged.emit()
@@ -69,8 +86,23 @@ class Backend(QObject):
             print(f"Ошибка БД (selectDictionary): {e}")
     
 
-    @Slot(str)
-    def selectModule(self, module_name):
-        self._current_module = module_name
-        print(f"Выбран модуль: {module_name}")
-        self.dataChanged.emit()
+    @Slot(int, str)
+    def selectModule(self, module_id, module_name):
+        try:
+            self._current_module_name = module_name
+            conn = self.get_connection()
+            cur = conn.cursor()
+            
+            cur.execute("""
+                SELECT c.term, c.translation 
+                FROM card c
+                JOIN module_card mc ON c.id = mc.card_id
+                WHERE mc.module_id = %s
+            """, (module_id,))
+            
+            self._module_cards = [{"term": row[0], "translation": row[1]} for row in cur.fetchall()]
+            cur.close()
+            conn.close()
+            self.dataChanged.emit()
+        except Exception as e:
+            print(f"Ошибка БД (selectModule): {e}")
